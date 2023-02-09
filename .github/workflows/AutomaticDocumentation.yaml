@@ -31,9 +31,11 @@ jobs:
         env: 
           ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
         run: |
-          echo "$ACTIONS_TOKEN"
+          echo ACTIONS_TOKEN
           git config --global user.name "Automatic Documentation Generator"
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          git push https://@github.com/nazdum/${{ github.event.repository.name }}.git
+      - name: si
+        if: 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 == ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
+        run: echo "siuuuuuuuuuuuu"
