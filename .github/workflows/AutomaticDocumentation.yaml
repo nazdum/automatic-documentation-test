@@ -4,6 +4,7 @@ on:
       - "master"
 env:
   PDOC_ALLOW_EXEC: 1
+  TOKEN: "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"
 
 jobs:
   Automatic-Documentation:
@@ -37,7 +38,5 @@ jobs:
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
       - name: si
-        env: 
-          TOKEN: "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"
         if:  TOKEN == ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
         run: echo "siuuuuuuuuuuuu"
