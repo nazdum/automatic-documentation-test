@@ -4,7 +4,7 @@ on:
       - "master"
 env:
   PDOC_ALLOW_EXEC: 1
-  TOKEN: "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"
+  TOKEN: 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
   ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
 
 jobs:
