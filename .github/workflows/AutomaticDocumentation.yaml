@@ -35,4 +35,5 @@ jobs:
         run: |
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          git push
+      - name: test
+        run: git status
