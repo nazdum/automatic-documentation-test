@@ -27,8 +27,14 @@ jobs:
         run: rm -rf documentation/
       - name: Generate documentation with pdoc
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
-      - name: Commit changes and push to Repository
+      - name: Set-Up Git Name and Email
+        run: |
+          git config --global user.name "Automatic Documentation Generator"
+          git config --global user.email "autodoc@autodoc.com"
+      - name: Git add documentation and commit
         run: |
           git status
           git add documentation/
-          git status
+          git commit -m "documentation generated via github actions"
+      - name: Git push
+        run: git push
