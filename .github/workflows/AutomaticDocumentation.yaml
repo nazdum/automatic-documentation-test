@@ -37,5 +37,7 @@ jobs:
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
       - name: si
-        if: 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 == ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
+        env: 
+          TOKEN: "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"
+        if:  TOKEN == ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
         run: echo "siuuuuuuuuuuuu"
