@@ -37,3 +37,5 @@ jobs:
           git commit -m "documentation generated via github actions" --no-verify
       - name: test
         run: git status
+      - name : git push
+        run: git push 
