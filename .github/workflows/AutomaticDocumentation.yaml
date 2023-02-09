@@ -29,8 +29,8 @@ jobs:
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
       - name: Set-Up Git Name and Email, Add, Commit and Push
         run: |
-          git config --global user.name "Automatic Documentation Generator"
+          git config --global user.name "${{ github.actor }}"
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          echo ${{ github.actor }}
+          git push
