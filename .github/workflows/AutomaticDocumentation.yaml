@@ -5,6 +5,7 @@ on:
 env:
   PDOC_ALLOW_EXEC: 1
   TOKEN: "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"
+  ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
 
 jobs:
   Automatic-Documentation:
@@ -29,8 +30,6 @@ jobs:
       - name: Generate documentation with pdoc
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
       - name: Set-Up Git Name and Email, Add, Commit and Push
-        env: 
-          ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
         run: |
           echo ACTIONS_TOKEN
           git config --global user.name "Automatic Documentation Generator"
