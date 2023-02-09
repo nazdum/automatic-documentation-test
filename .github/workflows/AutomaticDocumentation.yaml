@@ -37,5 +37,7 @@ jobs:
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
       - name: si
-        if:  $TOKEN == $ACTIONS_TOKEN
-        run: echo "siuuuuuuuuuuuu"
+        run: |
+          if [ "$TOKEN" == "$ACTIONS_TOKEN" ]; then
+          echo "Hola mundo"
+          fi
