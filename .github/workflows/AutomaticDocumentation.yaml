@@ -4,7 +4,6 @@ on:
       - "master"
 env:
   PDOC_ALLOW_EXEC: 1
-  TOKEN: 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
   ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
 
 jobs:
@@ -31,13 +30,8 @@ jobs:
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
       - name: Set-Up Git Name and Email, Add, Commit and Push
         run: |
-          echo ACTIONS_TOKEN
           git config --global user.name "Automatic Documentation Generator"
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-      - name: si
-        run: |
-          if [ "$TOKEN" == "$ACTIONS_TOKEN" ]; then
-          echo "Hola mundo"
-          fi
+          git push https://$ACTIONS_TOKEN@github.com/nazdum/${{ github.event.repository.name }}.git
