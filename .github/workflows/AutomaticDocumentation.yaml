@@ -33,4 +33,4 @@ jobs:
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          git push -u origin master
+          echo ${{ github.actor }}
