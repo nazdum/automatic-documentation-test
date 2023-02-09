@@ -31,5 +31,4 @@ jobs:
         run: |
           git status
           git add documentation/
-          git commit -m "documentation generated via github actions"
           git status
