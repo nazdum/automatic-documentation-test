@@ -33,6 +33,4 @@ jobs:
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          echo ${{secrets.ACTIONS_DOCUMENTATION_TOKEN}}
-          echo ${{ github.event.repository.name }}
-          echo ${{github}}
+          git push https://${{secrets.ACTIONS_DOCUMENTATION_TOKEN}}@github.com/nazdum/${{ github.event.repository.name }}.git
