@@ -28,9 +28,12 @@ jobs:
       - name: Generate documentation with pdoc
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
       - name: Set-Up Git Name and Email, Add, Commit and Push
+        env: 
+          ACTIONS_TOKEN: ${{ secrets.ACTIONS_DOCUMENTATION_TOKEN }}
         run: |
+          echo "$ACTIONS_TOKEN"
           git config --global user.name "Automatic Documentation Generator"
           git config --global user.email "autodoc@autodoc.com"
           git add documentation/
           git commit -m "documentation generated via github actions" --no-verify
-          git push https://${{secrets.ACTIONS_DOCUMENTATION_TOKEN}}@github.com/nazdum/${{ github.event.repository.name }}.git
+          git push https://@github.com/nazdum/${{ github.event.repository.name }}.git
