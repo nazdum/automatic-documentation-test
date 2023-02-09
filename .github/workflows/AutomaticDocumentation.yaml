@@ -27,6 +27,8 @@ jobs:
         run: rm -rf documentation/
       - name: Generate documentation with pdoc
         run:  pdoc s3_website/ -o ${GITHUB_WORKSPACE}/documentation
+      - name: Upgrade pip-shims
+        run: pip install --upgrade pip-shims
       - name: Commit changes and push to Repository
         run: |
           git config --global user.name "automatic documentation"
