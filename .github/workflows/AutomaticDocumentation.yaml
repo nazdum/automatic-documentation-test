@@ -31,10 +31,8 @@ jobs:
         run: |
           git config --global user.name "Automatic Documentation Generator"
           git config --global user.email "autodoc@autodoc.com"
-      - name: Git add documentation and commit
+      - name: Git add documentation, commit and push
         run: |
-          git status
           git add documentation/
-          git commit -m "documentation generated via github actions"
-      - name: Git push
-        run: git push
+          git commit -m "documentation generated via github actions" --no-verify
+          git push
