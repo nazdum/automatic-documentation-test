@@ -1,0 +1,313 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 bucket for website
+Parameters:
+  DomainName:
+    Description: Domain name (don't include www.)
+    Type: String
+    Default: domain.com
+  Client:
+    Description: Client name
+    Type: String
+  Stack:
+    Description: Stack name (Alpha, Beta, Production etc)
+    Type: String
+  SelectedCertificate:
+    Description: Select SSL/TLS Certification
+    Type: String
+    AllowedValues:
+      - jurcenoks.com
+Mappings:
+  CertificateArns:
+    jurcenoks.com:
+      arn: >-
+        arn:aws:acm:us-east-1:330073982995:certificate/928fe820-8db0-42c7-9be3-e43b807998cc
+  RegionMap:
+    us-east-1:
+      S3hostedzoneID: Z3AQBSTGFYJSTF
+      websiteendpoint: s3-website-us-east-1.amazonaws.com
+    us-west-1:
+      S3hostedzoneID: Z2F56UZL2M1ACD
+      websiteendpoint: s3-website-us-west-1.amazonaws.com
+    us-west-2:
+      S3hostedzoneID: Z3BJ6K6RIION7M
+      websiteendpoint: s3-website-us-west-2.amazonaws.com
+    eu-west-1:
+      S3hostedzoneID: Z1BKCTXD74EZPE
+      websiteendpoint: s3-website-eu-west-1.amazonaws.com
+    ap-southeast-1:
+      S3hostedzoneID: Z3O0J2DXBE1FTB
+      websiteendpoint: s3-website-ap-southeast-1.amazonaws.com
+    ap-southeast-2:
+      S3hostedzoneID: Z1WCIGYICN2BYD
+      websiteendpoint: s3-website-ap-southeast-2.amazonaws.com
+    ap-northeast-1:
+      S3hostedzoneID: Z2M4EHUR26P7ZW
+      websiteendpoint: s3-website-ap-northeast-1.amazonaws.com
+    sa-east-1:
+      S3hostedzoneID: Z31GFT0UA1I2HV
+      websiteendpoint: s3-website-sa-east-1.amazonaws.com
+Resources:
+  S3BucketBare:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${DomainName}'
+      AccessControl: PublicRead
+      Tags:
+        - Key: Client
+          Value: !Ref Client
+        - Key: Stack
+          Value: !Ref Stack
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: f8176bba-42b4-4780-a3bd-6583c3500085
+  S3BucketW3:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'www.${DomainName}'
+      AccessControl: PublicRead
+      Tags:
+        - Key: Client
+          Value: !Ref Client
+      WebsiteConfiguration:
+        RedirectAllRequestsTo:
+          HostName: !Sub '${DomainName}'
+          Protocol: https
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: bb3c1cac-9e0d-483e-abab-2c823004a920
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3BucketBare
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${DomainName}/*'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 76a70b20-6d22-4409-9664-24b25d626598
+  LogBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${DomainName}-logs'
+      Tags:
+        - Key: Client
+          Value: !Ref Client
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 8d3cd4ab-7cc6-44f1-803a-ef7b219dbd93
+  CloudFrontBare:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !Sub 
+              - '${S3BucketBare}.${S3WebEndpoint}'
+              - S3BucketBare: !Ref S3BucketBare
+                S3WebEndpoint: !FindInMap 
+                  - RegionMap
+                  - !Ref 'AWS::Region'
+                  - websiteendpoint
+            Id: myS3OriginBare
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+        Enabled: 'true'
+        Comment: !Sub 'Distribution for ${Client}'
+        HttpVersion: http2
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: !Sub '${LogBucket}.s3.amazonaws.com'
+          Prefix: !Sub '${DomainName}_Bare'
+        Aliases:
+          - !Ref DomainName
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          TargetOriginId: myS3OriginBare
+          Compress: true
+          DefaultTTL: 604800
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !FindInMap 
+            - CertificateArns
+            - !Ref SelectedCertificate
+            - arn
+          SslSupportMethod: sni-only
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: c0b07706-24fb-44cf-baf4-6a7e2a9d7757
+  CloudFrontW3:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !Sub 
+              - '${S3BucketW3}.${S3WebEndpoint}'
+              - S3BucketW3: !Ref S3BucketW3
+                S3WebEndpoint: !FindInMap 
+                  - RegionMap
+                  - !Ref 'AWS::Region'
+                  - websiteendpoint
+            Id: myS3Origin
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+        Enabled: 'true'
+        Comment: !Sub 'Distribution for ${Client}'
+        HttpVersion: http2
+        Logging:
+          IncludeCookies: 'false'
+          Bucket: !Sub '${LogBucket}.s3.amazonaws.com'
+          Prefix: !Ref DomainName
+        Aliases:
+          - !Sub 'www.${DomainName}'
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          TargetOriginId: myS3Origin
+          Compress: true
+          MinTTL: 300
+          DefaultTTL: 300
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: !FindInMap 
+            - CertificateArns
+            - !Ref SelectedCertificate
+            - arn
+          SslSupportMethod: sni-only
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4c746e9e-1d6d-40e2-9d42-f7fa89635d3b
+  R53EntryW3:
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt 
+          - CloudFrontW3
+          - DomainName
+      Comment: Route to CloudFront distribution
+      HostedZoneName: !Sub '${DomainName}.'
+      Name: !Sub 'www.${DomainName}.'
+      Type: A
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: f0d00ea6-2892-49c6-b135-123f44834dbd
+  R53EntryBare:
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt 
+          - CloudFrontBare
+          - DomainName
+      Comment: Route to CloudFront distribution redirect
+      HostedZoneName: !Sub '${DomainName}.'
+      Name: !Sub '${DomainName}.'
+      Type: A
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 5f98287d-2800-4439-83a7-f83641c24bcb
+Metadata:
+  'AWS::CloudFormation::Designer':
+    8d3cd4ab-7cc6-44f1-803a-ef7b219dbd93:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 90
+      z: 1
+      embeds: []
+    bb3c1cac-9e0d-483e-abab-2c823004a920:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 90
+      z: 1
+      embeds: []
+    4c746e9e-1d6d-40e2-9d42-f7fa89635d3b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 210
+      z: 1
+      embeds: []
+    f0d00ea6-2892-49c6-b135-123f44834dbd:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 210
+      z: 1
+      embeds: []
+    f8176bba-42b4-4780-a3bd-6583c3500085:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 290
+        'y': 90
+      z: 1
+      embeds: []
+    c0b07706-24fb-44cf-baf4-6a7e2a9d7757:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 300
+        'y': 210
+      z: 1
+      embeds: []
+    5f98287d-2800-4439-83a7-f83641c24bcb:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 330
+      z: 1
+      embeds: []
+    76a70b20-6d22-4409-9664-24b25d626598:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 330
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - f8176bba-42b4-4780-a3bd-6583c3500085
